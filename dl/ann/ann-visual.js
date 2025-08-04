@@ -1,8 +1,10 @@
 function drawNetwork() {
-  const layerX = [150, 350, 550, 750]; // x positions for each layer
-  const layerY_hidden1 = [140, 220, 300]; // y positions for hidden1 neurons
-  const layerY_hidden2 = [180, 260];      // y positions for hidden2 neurons
-  const centerY = 220;                    // output neuron y position
+  // X positions for layers (more spacing)
+  const layerX = [150, 400, 650, 900];
+  // Y positions for neurons
+  const layerY_hidden1 = [140, 260, 380];
+  const layerY_hidden2 = [200, 320];
+  const centerY = 260;
 
   // Input neuron
   drawNeuron(layerX[0], centerY, "x", x);
@@ -15,7 +17,7 @@ function drawNetwork() {
       layerX[1] - 30, layerY_hidden1[i],
       true,
       null,
-      map(Math.abs(w1[i]), 0, 1, 1, 4)
+      map(Math.abs(w1[i]), 0, 0.5, 1, 4) // normalized thickness
     );
   }
 
@@ -28,7 +30,7 @@ function drawNetwork() {
         layerX[2] - 30, layerY_hidden2[j],
         true,
         null,
-        map(Math.abs(w2[j][i]), 0, 1, 1, 4)
+        map(Math.abs(w2[j][i]), 0, 0.5, 1, 4) // normalized thickness
       );
     }
   }
@@ -41,7 +43,7 @@ function drawNetwork() {
       layerX[3] - 30, centerY,
       true,
       null,
-      map(Math.abs(w3[j]), 0, 1, 1, 4)
+      map(Math.abs(w3[j]), 0, 0.5, 1, 4) // normalized thickness
     );
   }
 }
@@ -59,7 +61,7 @@ function drawNeuron(x, y, label, value = null) {
 }
 
 function drawArrow(x1, y1, x2, y2, active = true, colorOverride = null, thickness = 1) {
-  push(); // ✅ prevents color/stroke bleed
+  push(); // isolate styles
   const arrowColor = colorOverride || (active ? "#0077cc" : "#aaa");
   stroke(arrowColor);
   strokeWeight(thickness);
@@ -73,11 +75,11 @@ function drawArrow(x1, y1, x2, y2, active = true, colorOverride = null, thicknes
   fill(arrowColor);
   noStroke();
   triangle(0, 0, -10, 5, -10, -5);
-  pop(); // ✅ restores previous styles
+  pop(); // restore styles
 }
 
 function drawLossGraph() {
-  const graphX = 50, graphY = 350, graphW = 700, graphH = 70;
+  const graphX = 50, graphY = 500, graphW = 700, graphH = 70; // moved down
   const maxLoss = Math.max(...lossHistory.map(p => p.loss), 1);
 
   // Axis
