@@ -1,6 +1,5 @@
 let x = 50;
 let y = 1.8 * x + 32;
-let w = 0.1, b = 0.0;
 let learningRate = 0.01;
 let loss = 0;
 
@@ -8,50 +7,71 @@ let epoch = 0, totalEpochs = 5;
 let step = 0;
 let training = false;
 
-const steps = [
-  () => {}, // Step 0: input
-  () => {}, // Step 1: target
-  () => {}, // Step 2: prediction
-  () => {}, // Step 3: loss
-  () => {}, // Step 4: gradient
-  () => {   // Step 5: update weight
-    const dw = 2 * (w * x + b - y) * x;
-    w -= learningRate * dw;
-  },
-  () => {   // Step 6: update bias
-    const db = 2 * (w * x + b - y);
-    b -= learningRate * db;
-  }
-];
+// Initialize network weights and biases
+let w1 = [Math.random(), Math.random()];  // weights input → hidden
+let b1 = [0, 0];                          // biases for hidden layer
+let w2 = [Math.random(), Math.random()];  // weights hidden → output
+let b2 = 0;                               // bias for output
 
-const formulas = [
-  () => `x = ${x}`,
-  () => `y = ${y.toFixed(2)}`,
-  () => `\\hat{y} = wx + b = ${w.toFixed(2)}·${x} + ${b.toFixed(2)} = ${(w * x + b).toFixed(2)}`,
-  () => {
-    const pred = w * x + b;
-    loss = (pred - y) ** 2;
-    return `L = (ŷ - y)^2 = (${pred.toFixed(2)} - ${y.toFixed(2)})^2 = ${loss.toFixed(4)}`;
-  },
-  () => {
-    const dL = 2 * (w * x + b - y);
-    return `\\frac{\\partial L}{\\partial w} = 2(ŷ - y)·x = ${dL.toFixed(2)} × ${x} = ${(dL * x).toFixed(2)}`;
-  },
-  () => {
-    const dw = 2 * (w * x + b - y) * x;
-    return `w = w - η·∂L/∂w = ${w.toFixed(2)} - ${learningRate} × ${dw.toFixed(2)}`;
-  },
-  () => {
-    const db = 2 * (w * x + b - y);
-    return `b = b - η·∂L/∂b = ${b.toFixed(2)} - ${learningRate} × ${db.toFixed(2)}`;
+// Activations (updated per step)
+let h = [0, 0];   // hidden activations
+let yHat = 0;     // predicted output
+
+// Forward pass computation
+function forward(x) {
+  h = [
+    relu(w1[0] * x + b1[0]),
+    relu(w1[1] * x + b1[1])
+  ];
+  yHat = w2[0] * h[0] + w2[1] * h[1] + b2;
+}
+
+// ReLU activation
+function relu(z) {
+  return Math.max(0, z);
+}
+
+// Derivative of ReLU
+function reluDerivative(z) {
+  return z > 0 ? 1 : 0;
+}
+
+// Backward pass and update
+function backward(x, y) {
+  forward(x);  // Ensure latest forward pass
+  const error = yHat - y;
+
+  // Gradients for output weights and bias
+  const dw2 = [error * h[0], error * h[1]];
+  const db2 = error;
+
+  // Gradients for hidden layer
+  const dh = [
+    error * w2[0] * reluDerivative(w1[0] * x + b1[0]),
+    error * w2[1] * reluDerivative(w1[1] * x + b1[1])
+  ];
+
+  const dw1 = [dh[0] * x, dh[1] * x];
+  const db1 = [dh[0], dh[1]];
+
+  // Apply updates
+  for (let i = 0; i < 2; i++) {
+    w2[i] -= learningRate * dw2[i];
+    w1[i] -= learningRate * dw1[i];
+    b1[i] -= learningRate * db1[i];
   }
-];
+  b2 -= learningRate * db2;
+
+  // Calculate new loss
+  loss = (yHat - y) ** 2;
+}
 
 function setup() {
-  const canvas = createCanvas(700, 300);
+  const canvas = createCanvas(700, 400);
   canvas.parent("sketch-holder");
   textAlign(CENTER, CENTER);
   textSize(14);
+  forward(x);
   updateDisplays();
 }
 
@@ -63,73 +83,28 @@ function draw() {
 }
 
 function drawNetwork() {
-  // Neuron: input and output
-  drawNeuron(100, 150, "x", x);
-  const yHat = w * x + b;
-  drawNeuron(300, 150, "ŷ", yHat);
+  const cx = 150, cy = 200;
 
-  // Arrow with thickness based on weight
-  const weightThickness = map(Math.abs(w), 0, 5, 1, 8);
-  drawArrow(130, 150, 270, 150, step >= 2, null, weightThickness);
+  // Draw input
+  drawNeuron(cx - 120, cy, "x", x);
 
-  // Backward arrow if step >= 5
-  if (step >= 5) {
-    drawArrow(270, 150, 130, 150, true, "red", 2);
+  // Draw hidden neurons
+  for (let i = 0; i < 2; i++) {
+    const hx = cx, hy = cy - 60 + i * 120;
+    drawNeuron(hx, hy, "h" + (i + 1), h[i]);
+    drawArrow(cx - 90, cy, hx - 30, hy, true, null, map(Math.abs(w1[i]), 0, 5, 1, 6));
   }
-}
 
-function drawNeuron(x, y, label, value = null) {
-  stroke(0);
-  fill("#eef");
-  ellipse(x, y, 60);
-  fill(0);
-  noStroke();
-  text(label, x, y - 10);
-  if (value !== null) {
-    text(`=${value.toFixed(2)}`, x, y + 12);
+  // Draw output neuron
+  drawNeuron(cx + 120, cy, "ŷ", yHat);
+  for (let i = 0; i < 2; i++) {
+    const hx = cx, hy = cy - 60 + i * 120;
+    drawArrow(hx + 30, hy, cx + 90, cy, true, null, map(Math.abs(w2[i]), 0, 5, 1, 6));
   }
-}
-
-function drawArrow(x1, y1, x2, y2, active = true, colorOverride = null, thickness = 1) {
-  stroke(colorOverride || (active ? "#0077cc" : "#aaa"));
-  strokeWeight(thickness);
-  line(x1, y1, x2, y2);
-
-  const angle = atan2(y2 - y1, x2 - x1);
-  push();
-  translate(x2, y2);
-  rotate(angle);
-  fill(colorOverride || (active ? "#0077cc" : "#aaa"));
-  triangle(0, 0, -10, 5, -10, -5);
-  pop();
-}
-
-function updateFormulaPanel() {
-  document.getElementById("step-text").innerText = `Epoch ${epoch + 1}, Step ${step + 1} of 7`;
-  document.getElementById("formula-text").innerHTML = `\\[ ${formulas[step]()} \\]`;
-  MathJax.typesetPromise();
-  updateDisplays();
-}
-
-function updateDisplays() {
-  document.getElementById("weightDisplay").innerText = `Weight: ${w.toFixed(4)}`;
-  document.getElementById("biasDisplay").innerText = `Bias: ${b.toFixed(4)}`;
-  document.getElementById("lossDisplay").innerText = `Loss: ${loss.toFixed(4)}`;
-}
-
-function updateInput() {
-  x = parseInt(document.getElementById("inputC").value);
-  document.getElementById("inputCVal").innerText = x;
-  y = 1.8 * x + 32;
-}
-
-function updateEpochs() {
-  totalEpochs = parseInt(document.getElementById("epochSelect").value);
 }
 
 function startTraining() {
   epoch = 0;
-  step = 0;
   training = true;
   runEpoch();
 }
@@ -140,20 +115,30 @@ function runEpoch() {
     return;
   }
 
-  step = 0;
+  forward(x);
+  backward(x, y);
+  updateDisplays();
+  epoch++;
 
-  function nextStep() {
-    if (step >= steps.length) {
-      epoch++;
-      runEpoch();
-      return;
-    }
+  setTimeout(runEpoch, 1000); // slower for visibility
+}
 
-    steps[step]();  // execute logic for this step
-    updateFormulaPanel();
-    step++;
-    setTimeout(nextStep, 1500);
-  }
 
-  nextStep();
+function updateFormulaPanel() {
+  document.getElementById("step-text").innerText = `Epoch ${epoch} / ${totalEpochs}`;
+  document.getElementById("formula-text").innerHTML = `\\[ y = ${y.toFixed(2)}, \\quad \\hat{y} = ${yHat.toFixed(2)}, \\quad L = ${loss.toFixed(4)} \\]`;
+  MathJax.typesetPromise();
+}
+
+function updateDisplays() {
+  document.getElementById("weightDisplay").innerText = `w1: [${w1.map(w => w.toFixed(2)).join(", ")}], w2: [${w2.map(w => w.toFixed(2)).join(", ")}]`;
+  document.getElementById("biasDisplay").innerText = `b1: [${b1.map(b => b.toFixed(2)).join(", ")}], b2: ${b2.toFixed(2)}`;
+  document.getElementById("lossDisplay").innerText = `Loss: ${loss.toFixed(4)}`;
+}
+
+function updateInput() {
+  x = parseInt(document.getElementById("inputC").value);
+  document.getElementById("inputCVal").innerText = x;
+  y = 1.8 * x + 32;
+  forward(x);
 }
