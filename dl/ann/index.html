@@ -2,48 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ANN Interactive Trainer — Learnly</title>
-  <link rel="stylesheet" href="ann-train.css" />
+  <title>ANN with Two Hidden Layers — Learnly</title>
+  <link rel="stylesheet" href="ann-style.css" />
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
-  <script src="ann-train.js" defer></script>
-  <!-- MathJax for formulas -->
+  <script src="ann-network.js" defer></script>
+  <script src="ann-visual.js" defer></script>
+  <script src="ann-main.js" defer></script>
+  <!-- MathJax -->
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
   <header>
-    <h1>Artificial Neural Network — Celsius to Fahrenheit</h1>
-    <p>Train a simple ANN step-by-step. See each formula, flow, and weight update clearly.</p>
+    <h1>Artificial Neural Network — Two Hidden Layers</h1>
+    <p>Auto-training on Celsius → Fahrenheit conversion with 4 epochs</p>
   </header>
 
   <main>
-    <div class="controls">
-      <label for="inputC">Input Celsius:</label>
-      <input type="range" id="inputC" min="0" max="100" value="50" oninput="updateInput()">
-      <span id="inputCVal">50</span>°C
-
-      <label for="epochSelect">Epochs:</label>
-      <select id="epochSelect" onchange="updateEpochs()">
-        <option>1</option>
-        <option selected>5</option>
-        <option>10</option>
-        <option>20</option>
-      </select>
-
-      <button onclick="startTraining()">Train Network</button>
-    </div>
-
     <div id="sketch-holder"></div>
-
+    <div class="metrics">
+      <p id="weightDisplay"></p>
+      <p id="biasDisplay"></p>
+      <p id="lossDisplay"></p>
+    </div>
     <div class="panel">
       <p id="step-text"></p>
-      <p id="formula-text">Click "Train Network" to begin</p>
-    </div>
-
-    <div class="metrics">
-      <p id="weightDisplay">Weight: --</p>
-      <p id="biasDisplay">Bias: --</p>
-      <p id="lossDisplay">Loss: --</p>
+      <p id="formula-text"></p>
     </div>
   </main>
 
