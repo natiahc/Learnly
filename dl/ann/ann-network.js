@@ -9,20 +9,25 @@ const totalEpochs = 4;
 
 let lossHistory = [];
 
+// --- Utility for small random weights ---
+function randWeight() {
+  return Math.random() * 1 - 0.5; // range [-0.5, 0.5]
+}
+
 // --- Network Weights and Biases ---
 // Input → Hidden1 (3 neurons)
-let w1 = [Math.random(), Math.random(), Math.random()];
+let w1 = [randWeight(), randWeight(), randWeight()];
 let b1 = [0, 0, 0];
 
 // Hidden1 → Hidden2 (2 neurons)
 let w2 = [
-  [Math.random(), Math.random(), Math.random()],  // h2[0] connections
-  [Math.random(), Math.random(), Math.random()]   // h2[1] connections
+  [randWeight(), randWeight(), randWeight()], // h2[0] connections
+  [randWeight(), randWeight(), randWeight()]  // h2[1] connections
 ];
 let b2 = [0, 0];
 
 // Hidden2 → Output (1 neuron)
-let w3 = [Math.random(), Math.random()];
+let w3 = [randWeight(), randWeight()];
 let b3 = 0;
 
 // --- Activations ---
