@@ -1,26 +1,25 @@
-let x = 50;               // Celsius input
-let y = 1.8 * x + 32;     // Ground truth Fahrenheit output
-let w = 0.1, b = 0.0;     // Initial weight and bias
+let x = 50;
+let y = 1.8 * x + 32;
+let w = 0.1, b = 0.0;
 let learningRate = 0.01;
+let loss = 0;
 
 let epoch = 0, totalEpochs = 5;
 let step = 0;
 let training = false;
 
-let loss = 0;
-
 const steps = [
-  () => {}, // Step 0: x
-  () => {}, // Step 1: y
+  () => {}, // Step 0: input
+  () => {}, // Step 1: target
   () => {}, // Step 2: prediction
   () => {}, // Step 3: loss
   () => {}, // Step 4: gradient
-  () => {   // Step 5: update w
-    let dw = 2 * (w * x + b - y) * x;
+  () => {   // Step 5: update weight
+    const dw = 2 * (w * x + b - y) * x;
     w -= learningRate * dw;
   },
-  () => {   // Step 6: update b
-    let db = 2 * (w * x + b - y);
+  () => {   // Step 6: update bias
+    const db = 2 * (w * x + b - y);
     b -= learningRate * db;
   }
 ];
@@ -36,7 +35,7 @@ const formulas = [
   },
   () => {
     const dL = 2 * (w * x + b - y);
-    return `\\frac{\\partial L}{\\partial w} = 2(ŷ - y)x = ${dL.toFixed(2)} × ${x} = ${(dL * x).toFixed(2)}`;
+    return `\\frac{\\partial L}{\\partial w} = 2(ŷ - y)·x = ${dL.toFixed(2)} × ${x} = ${(dL * x).toFixed(2)}`;
   },
   () => {
     const dw = 2 * (w * x + b - y) * x;
@@ -64,28 +63,38 @@ function draw() {
 }
 
 function drawNetwork() {
-  drawNeuron(100, 150, `x = ${x}`);
-  drawNeuron(300, 150, `ŷ`);
-  drawArrow(130, 150, 270, 150, step >= 2);
+  // Neuron: input and output
+  drawNeuron(100, 150, "x", x);
+  const yHat = w * x + b;
+  drawNeuron(300, 150, "ŷ", yHat);
 
+  // Arrow with thickness based on weight
+  const weightThickness = map(Math.abs(w), 0, 5, 1, 8);
+  drawArrow(130, 150, 270, 150, step >= 2, null, weightThickness);
+
+  // Backward arrow if step >= 5
   if (step >= 5) {
-    drawArrow(270, 150, 130, 150, true, "red");
+    drawArrow(270, 150, 130, 150, true, "red", 2);
   }
 }
 
-function drawNeuron(x, y, label) {
+function drawNeuron(x, y, label, value = null) {
   stroke(0);
   fill("#eef");
   ellipse(x, y, 60);
   fill(0);
   noStroke();
-  text(label, x, y);
+  text(label, x, y - 10);
+  if (value !== null) {
+    text(`=${value.toFixed(2)}`, x, y + 12);
+  }
 }
 
-function drawArrow(x1, y1, x2, y2, active = true, colorOverride = null) {
+function drawArrow(x1, y1, x2, y2, active = true, colorOverride = null, thickness = 1) {
   stroke(colorOverride || (active ? "#0077cc" : "#aaa"));
-  strokeWeight(active ? 3 : 1);
+  strokeWeight(thickness);
   line(x1, y1, x2, y2);
+
   const angle = atan2(y2 - y1, x2 - x1);
   push();
   translate(x2, y2);
@@ -99,7 +108,6 @@ function updateFormulaPanel() {
   document.getElementById("step-text").innerText = `Epoch ${epoch + 1}, Step ${step + 1} of 7`;
   document.getElementById("formula-text").innerHTML = `\\[ ${formulas[step]()} \\]`;
   MathJax.typesetPromise();
-
   updateDisplays();
 }
 
@@ -141,7 +149,7 @@ function runEpoch() {
       return;
     }
 
-    steps[step]();      // Execute logic for the step
+    steps[step]();  // execute logic for this step
     updateFormulaPanel();
     step++;
     setTimeout(nextStep, 1500);
