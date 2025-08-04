@@ -1,3 +1,5 @@
+let lossHistory = [];
+
 let x = 50;
 let y = 1.8 * x + 32;
 let learningRate = 0.01;
@@ -72,6 +74,7 @@ function draw() {
   background(255);
   drawNetwork();
   if (training) updateFormulaPanel();
+  drawLossGraph();
 }
 
 function drawNetwork() {
@@ -124,6 +127,8 @@ function runEpoch() {
 
   forward(x);
   backward(x, y);
+  lossHistory.push({ epoch, loss });
+
   updateDisplays();
   epoch++;
 
@@ -141,3 +146,31 @@ function updateFormulaPanel() {
   document.getElementById("formula-text").innerHTML = `\\[ y = ${y.toFixed(2)}, \\quad \\hat{y} = ${yHat.toFixed(2)}, \\quad L = ${loss.toFixed(4)} \\]`;
   MathJax.typesetPromise();
 }
+
+function drawLossGraph() {
+  const graphX = 50, graphY = 320, graphW = 700, graphH = 70;
+  const maxLoss = Math.max(...lossHistory.map(p => p.loss), 1);
+
+  // Axis
+  stroke(0);
+  noFill();
+  rect(graphX, graphY, graphW, graphH);
+
+  // Labels
+  noStroke();
+  fill(0);
+  text("Loss", graphX - 20, graphY + graphH / 2);
+  text("Epoch", graphX + graphW / 2, graphY + graphH + 15);
+
+  // Plot line
+  stroke("#cc0000");
+  noFill();
+  beginShape();
+  for (let i = 0; i < lossHistory.length; i++) {
+    const px = graphX + (i / (totalEpochs - 1)) * graphW;
+    const py = graphY + graphH - (lossHistory[i].loss / maxLoss) * graphH;
+    vertex(px, py);
+  }
+  endShape();
+}
+
