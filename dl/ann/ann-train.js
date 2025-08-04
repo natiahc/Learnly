@@ -3,110 +3,117 @@ let y = 1.8 * x + 32;
 let learningRate = 0.01;
 let loss = 0;
 
-let epoch = 0, totalEpochs = 5;
-let step = 0;
+let epoch = 0;
+const totalEpochs = 4;
+
+let w1 = [Math.random(), Math.random(), Math.random()];
+let b1 = [0, 0, 0];
+let w2 = [Math.random(), Math.random(), Math.random()];
+let b2 = 0;
+
+let h = [0, 0, 0];
+let yHat = 0;
 let training = false;
 
-// Initialize network weights and biases
-let w1 = [Math.random(), Math.random()];  // weights input → hidden
-let b1 = [0, 0];                          // biases for hidden layer
-let w2 = [Math.random(), Math.random()];  // weights hidden → output
-let b2 = 0;                               // bias for output
-
-// Activations (updated per step)
-let h = [0, 0];   // hidden activations
-let yHat = 0;     // predicted output
-
-// Forward pass computation
-function forward(x) {
-  h = [
-    relu(w1[0] * x + b1[0]),
-    relu(w1[1] * x + b1[1])
-  ];
-  yHat = w2[0] * h[0] + w2[1] * h[1] + b2;
-}
-
-// ReLU activation
 function relu(z) {
   return Math.max(0, z);
 }
-
-// Derivative of ReLU
 function reluDerivative(z) {
   return z > 0 ? 1 : 0;
 }
 
-// Backward pass and update
+function forward(x) {
+  for (let i = 0; i < 3; i++) {
+    h[i] = relu(w1[i] * x + b1[i]);
+  }
+  yHat = w2[0] * h[0] + w2[1] * h[1] + w2[2] * h[2] + b2;
+}
+
 function backward(x, y) {
-  forward(x);  // Ensure latest forward pass
+  forward(x);
   const error = yHat - y;
 
-  // Gradients for output weights and bias
-  const dw2 = [error * h[0], error * h[1]];
+  const dw2 = h.map(hj => error * hj);
   const db2 = error;
 
-  // Gradients for hidden layer
-  const dh = [
-    error * w2[0] * reluDerivative(w1[0] * x + b1[0]),
-    error * w2[1] * reluDerivative(w1[1] * x + b1[1])
-  ];
+  const dh = [];
+  for (let i = 0; i < 3; i++) {
+    const dz = w2[i] * error * reluDerivative(w1[i] * x + b1[i]);
+    dh.push(dz);
+  }
 
-  const dw1 = [dh[0] * x, dh[1] * x];
-  const db1 = [dh[0], dh[1]];
+  const dw1 = dh.map(d => d * x);
+  const db1_new = dh;
 
-  // Apply updates
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 3; i++) {
     w2[i] -= learningRate * dw2[i];
     w1[i] -= learningRate * dw1[i];
-    b1[i] -= learningRate * db1[i];
+    b1[i] -= learningRate * db1_new[i];
   }
   b2 -= learningRate * db2;
 
-  // Calculate new loss
   loss = (yHat - y) ** 2;
 }
 
+// -------------------- p5.js part --------------------
+
 function setup() {
-  const canvas = createCanvas(700, 400);
+  const canvas = createCanvas(800, 400);
   canvas.parent("sketch-holder");
   textAlign(CENTER, CENTER);
   textSize(14);
   forward(x);
   updateDisplays();
+  training = true;
+  runEpoch();
 }
 
 function draw() {
   background(255);
   drawNetwork();
-
   if (training) updateFormulaPanel();
 }
 
 function drawNetwork() {
-  const cx = 150, cy = 200;
-
-  // Draw input
+  const cx = 200, cy = 200;
   drawNeuron(cx - 120, cy, "x", x);
 
-  // Draw hidden neurons
-  for (let i = 0; i < 2; i++) {
-    const hx = cx, hy = cy - 60 + i * 120;
-    drawNeuron(hx, hy, "h" + (i + 1), h[i]);
-    drawArrow(cx - 90, cy, hx - 30, hy, true, null, map(Math.abs(w1[i]), 0, 5, 1, 6));
+  for (let i = 0; i < 3; i++) {
+    const hy = cy - 80 + i * 80;
+    drawNeuron(cx, hy, `h${i + 1}`, h[i]);
+    drawArrow(cx - 90, cy, cx - 30, hy, true, null, map(Math.abs(w1[i]), 0, 5, 1, 6));
   }
 
-  // Draw output neuron
-  drawNeuron(cx + 120, cy, "ŷ", yHat);
-  for (let i = 0; i < 2; i++) {
-    const hx = cx, hy = cy - 60 + i * 120;
-    drawArrow(hx + 30, hy, cx + 90, cy, true, null, map(Math.abs(w2[i]), 0, 5, 1, 6));
+  drawNeuron(cx + 160, cy, "ŷ", yHat);
+  for (let i = 0; i < 3; i++) {
+    const hy = cy - 80 + i * 80;
+    drawArrow(cx + 30, hy, cx + 130, cy, true, null, map(Math.abs(w2[i]), 0, 5, 1, 6));
   }
 }
 
-function startTraining() {
-  epoch = 0;
-  training = true;
-  runEpoch();
+function drawNeuron(x, y, label, value = null) {
+  stroke(0);
+  fill("#eef");
+  ellipse(x, y, 60);
+  fill(0);
+  noStroke();
+  text(label, x, y - 10);
+  if (value !== null) {
+    text(`=${value.toFixed(2)}`, x, y + 12);
+  }
+}
+
+function drawArrow(x1, y1, x2, y2, active = true, colorOverride = null, thickness = 1) {
+  stroke(colorOverride || (active ? "#0077cc" : "#aaa"));
+  strokeWeight(thickness);
+  line(x1, y1, x2, y2);
+  const angle = atan2(y2 - y1, x2 - x1);
+  push();
+  translate(x2, y2);
+  rotate(angle);
+  fill(colorOverride || (active ? "#0077cc" : "#aaa"));
+  triangle(0, 0, -10, 5, -10, -5);
+  pop();
 }
 
 function runEpoch() {
@@ -120,14 +127,7 @@ function runEpoch() {
   updateDisplays();
   epoch++;
 
-  setTimeout(runEpoch, 1000); // slower for visibility
-}
-
-
-function updateFormulaPanel() {
-  document.getElementById("step-text").innerText = `Epoch ${epoch} / ${totalEpochs}`;
-  document.getElementById("formula-text").innerHTML = `\\[ y = ${y.toFixed(2)}, \\quad \\hat{y} = ${yHat.toFixed(2)}, \\quad L = ${loss.toFixed(4)} \\]`;
-  MathJax.typesetPromise();
+  setTimeout(runEpoch, 1500);
 }
 
 function updateDisplays() {
@@ -136,9 +136,8 @@ function updateDisplays() {
   document.getElementById("lossDisplay").innerText = `Loss: ${loss.toFixed(4)}`;
 }
 
-function updateInput() {
-  x = parseInt(document.getElementById("inputC").value);
-  document.getElementById("inputCVal").innerText = x;
-  y = 1.8 * x + 32;
-  forward(x);
+function updateFormulaPanel() {
+  document.getElementById("step-text").innerText = `Epoch ${epoch} / ${totalEpochs}`;
+  document.getElementById("formula-text").innerHTML = `\\[ y = ${y.toFixed(2)}, \\quad \\hat{y} = ${yHat.toFixed(2)}, \\quad L = ${loss.toFixed(4)} \\]`;
+  MathJax.typesetPromise();
 }
