@@ -15,7 +15,7 @@ function drawNetwork() {
       layerX[1] - 30, layerY_hidden1[i],
       true,
       null,
-      map(Math.abs(w1[i]), 0, 5, 1, 6)
+      map(Math.abs(w1[i]), 0, 1, 1, 4)
     );
   }
 
@@ -28,7 +28,7 @@ function drawNetwork() {
         layerX[2] - 30, layerY_hidden2[j],
         true,
         null,
-        map(Math.abs(w2[j][i]), 0, 5, 1, 6)
+        map(Math.abs(w2[j][i]), 0, 1, 1, 4)
       );
     }
   }
@@ -41,7 +41,7 @@ function drawNetwork() {
       layerX[3] - 30, centerY,
       true,
       null,
-      map(Math.abs(w3[j]), 0, 5, 1, 6)
+      map(Math.abs(w3[j]), 0, 1, 1, 4)
     );
   }
 }
@@ -59,17 +59,21 @@ function drawNeuron(x, y, label, value = null) {
 }
 
 function drawArrow(x1, y1, x2, y2, active = true, colorOverride = null, thickness = 1) {
-  stroke(colorOverride || (active ? "#0077cc" : "#aaa"));
+  push(); // ✅ prevents color/stroke bleed
+  const arrowColor = colorOverride || (active ? "#0077cc" : "#aaa");
+  stroke(arrowColor);
   strokeWeight(thickness);
+  noFill();
   line(x1, y1, x2, y2);
 
   const angle = atan2(y2 - y1, x2 - x1);
-  push();
   translate(x2, y2);
   rotate(angle);
-  fill(colorOverride || (active ? "#0077cc" : "#aaa"));
+
+  fill(arrowColor);
+  noStroke();
   triangle(0, 0, -10, 5, -10, -5);
-  pop();
+  pop(); // ✅ restores previous styles
 }
 
 function drawLossGraph() {
