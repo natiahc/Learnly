@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>How a Neural Network Works — Learnly</title>
+  <link rel="stylesheet" href="ann.css">
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+  <script src="ann.js" defer></script>
+  <!-- MathJax for LaTeX-style formulas -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <header>
+    <h1>How an Artificial Neural Network Works</h1>
+    <p>Step-by-step visualization of forward pass and core formulas.</p>
+  </header>
+
+  <main class="container">
+    <section class="left">
+      <h2>Formulas</h2>
+      <p>Each neuron performs:</p>
+      <p>\[ z = \sum (w_i \cdot x_i) + b \]</p>
+      <p>\[ a = \sigma(z) \]</p>
+      <p>Where \( \sigma \) is the activation function (e.g., sigmoid, ReLU)</p>
+      <p>The output is:</p>
+      <p>\[ \hat{y} = \sigma(w \cdot a + b) \]</p>
+    </section>
+
+    <section class="right">
+      <div id="sketch-holder"></div>
+      <p id="ann-step-desc"></p>
+    </section>
+  </main>
+
+  <footer>
+    <p><a href="../index.html">← Back to Deep Learning</a></p>
+  </footer>
+</body>
+</html>
